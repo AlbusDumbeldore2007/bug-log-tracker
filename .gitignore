@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Environment secrets — never commit this
+.env
+
+# SQLite database file
+*.db
+*.db-journal
+
+# OS junk
+.DS_Store
+Thumbs.db
