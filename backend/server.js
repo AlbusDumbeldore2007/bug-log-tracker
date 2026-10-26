@@ -1,7 +1,10 @@
-const express = require('express');
+﻿const express = require('express');
 const cors = require('cors');
 const Database = require('better-sqlite3');
 require('dotenv').config();
+
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,7 +13,13 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Database setup — file-based SQLite, zero config, persists between restarts
+// Serve frontend static files if present
+const frontendDir = path.join(__dirname, '../frontend');
+if (fs.existsSync(frontendDir)) {
+  app.use(express.static(frontendDir));
+}
+
+// Database setup â€” file-based SQLite, zero config, persists between restarts
 const db = new Database('bugs.db');
 
 // Create table on first run
@@ -35,16 +44,16 @@ db.exec(`
   );
 `);
 
-// Health check — used to verify the backend is alive after deploy
+// Health check â€” used to verify the backend is alive after deploy
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// ─────────────────────────────────────────────
-// CREATE — POST /bugs
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// CREATE â€” POST /bugs
 // Receives bug data from frontend, inserts into DB
 // Returns the new record so the UI can append it without re-fetching all bugs
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.post('/bugs', (req, res) => {
   const { title, description, error_message, fix, tags } = req.body;
 
@@ -60,21 +69,21 @@ app.post('/bugs', (req, res) => {
   res.status(201).json(newBug);
 });
 
-// ─────────────────────────────────────────────
-// READ — GET /bugs
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// READ â€” GET /bugs
 // Returns all bug logs, newest first
 // Called on every page load so the list is always up to date
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.get('/bugs', (req, res) => {
   const bugs = db.prepare('SELECT * FROM bugs ORDER BY created_at DESC').all();
   res.json(bugs);
 });
 
-// ─────────────────────────────────────────────
-// UPDATE — PUT /bugs/:id
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// UPDATE â€” PUT /bugs/:id
 // Updates a specific bug by ID with new values
-// Falls back to existing values for any field not sent — safe partial update
-// ─────────────────────────────────────────────
+// Falls back to existing values for any field not sent â€” safe partial update
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.put('/bugs/:id', (req, res) => {
   const { id } = req.params;
   const { title, description, error_message, fix, tags } = req.body;
@@ -105,11 +114,11 @@ app.put('/bugs/:id', (req, res) => {
   res.json(updated);
 });
 
-// ─────────────────────────────────────────────
-// DELETE — DELETE /bugs/:id
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// DELETE â€” DELETE /bugs/:id
 // Permanently removes a bug log by ID
-// 204 No Content on success — nothing meaningful to return after deletion
-// ─────────────────────────────────────────────
+// 204 No Content on success â€” nothing meaningful to return after deletion
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.delete('/bugs/:id', (req, res) => {
   const { id } = req.params;
   const existing = db.prepare('SELECT * FROM bugs WHERE id = ?').get(id);
