@@ -58,4 +58,13 @@ CREATE TABLE bugs (
   tags          TEXT,
   created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE bug_notes (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  bug_id        INTEGER NOT NULL,
+  note          TEXT NOT NULL,
+  author        TEXT DEFAULT 'Developer',
+  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (bug_id) REFERENCES bugs (id) ON DELETE CASCADE
+);
 ```
